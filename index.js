@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 require('dotenv').config()
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -28,12 +28,51 @@ async function run() {
     await client.connect();
 
     const jobCollection=client.db('jobportal').collection('jobs')
+    const applicationCollection=client.db('jobportal').collection('application')
 
     //jobs related api
     app.get('/jobs', async(req,res)=>{
         const cursor=jobCollection.find()
         const result= await cursor.toArray()
         res.send(result)
+    })
+
+    app.get("/jobs/:id", async(req,res)=>{
+      const id=req.params.id
+      const query={_id : new ObjectId(id)}
+      const result= await jobCollection.findOne(query)
+
+      
+      res.send(result)
+    })
+
+    //job application apis
+    app.post("/job-application", async(req,res)=>{
+      const application=req.body
+      const result=await applicationCollection.insertOne(application)
+      res.send(result)
+
+    })
+
+    app.get("/job-application",async (req,res)=>{
+      const email=req.query.email     
+      const query= {applicant_email: email} 
+      const result= await applicationCollection.find(query).toArray()
+      //fokira way to load data / aggregate data
+      for(const application of result) {
+        console.log(application.job_id)
+        const query1= {_id :new ObjectId(application.job_id)}
+        const job = await jobCollection.findOne(query1)
+        if(job){
+          application.title=job.title;
+          application.company=job.company;
+          application.company_logo=job.company_logo;
+          application.location=job.location;
+
+        }
+        
+      }
+      res.send(result)
     })
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
