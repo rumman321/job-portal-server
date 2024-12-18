@@ -67,7 +67,7 @@ async function run() {
 
     //jobs related api
     app.get("/jobs", logger, async (req, res) => {
-      console.log('now inside the callBack')
+      // console.log('now inside the callBack')
       const email = req.query.email;
       let query = {};
       if (email) {
@@ -89,12 +89,8 @@ async function run() {
     });
 
     //job application apis
-    app.get("/job-application/jobs/:job_id", async (req,res)=>{
-      const jobId=req.params.job_id
-      const query= {job_id : jobId}
-      const result= await applicationCollection.find(query).toArray()
-      res.json(result)
-    }) 
+
+   
     app.post("/job-application", async (req, res) => {
       const application = req.body;
       const result = await applicationCollection.insertOne(application);
@@ -121,7 +117,15 @@ async function run() {
       }
       
     });
+    // app.get('/job-application/:id') ==> get a specific job application by id
 
+    app.get("/job-application/jobs/:job_id", async (req,res)=>{
+      const jobId=req.params.job_id
+      const query= {job_id : jobId}
+      const result= await applicationCollection.find(query).toArray()
+      res.json(result)
+    }) 
+    // get all data, get one data, get some data [o, 1, many]
     
     app.get("/job-application", verifyToken, async (req, res) => {
       const email = req.query.email;
